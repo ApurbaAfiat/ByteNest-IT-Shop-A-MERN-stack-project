@@ -9,7 +9,9 @@ import productRoutes from './routes/productRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
-import paymentRoutes from './routes/paymentRoutes.js';
+import categoryRoutes from './routes/categoryRoutes.js';
+import statsRoutes from './routes/statsRoutes.js';
+import couponRoutes from './routes/couponRoutes.js';
 
 import connectDB from './config/db.js';
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
@@ -21,35 +23,40 @@ connectDB();
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: process.env.NODE_ENV === 'development' ? 'http://localhost:5173' : true,
+  credentials: true
+}));
 app.use(compression());
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-const __dirname = path.resolve(); // Set {__dirname} to current working directory
+const __dirname = path.resolve();
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// API Routes
 app.use('/api/v1/products', productRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/orders', orderRoutes);
 app.use('/api/v1/upload', uploadRoutes);
-app.use('/api/v1/payment', paymentRoutes);
-//-------------------------------------
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '/frontend/build')));
+app.use('/api/v1/categories', categoryRoutes);
+app.use('/api/v1/stats', statsRoutes);
+app.use('/api/v1/coupons', couponRoutes);
 
-  //any app route that is not api will redirected to index.html
+// Serve frontend in production (Vite builds to 'dist')
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '/frontend/dist')));
+
   app.get('*', (req, res) => {
-    res.sendFile(path.resolve(__dirname, 'frontend', 'build', 'index.html'));
+    res.sendFile(path.resolve(__dirname, 'frontend', 'dist', 'index.html'));
   });
 } else {
   app.get('/', (req, res) => {
-    res.send('Hello, World!');
+    res.send('ByteNest API is running...');
   });
 }
 
-//-------------------------------------
 app.use(notFound);
 app.use(errorHandler);
 

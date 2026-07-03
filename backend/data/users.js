@@ -1,35 +1,27 @@
-import bcrypt from 'bcrypt';
-
 const users = [
   {
     name: 'Admin User',
-    email: 'admin@admin.com',
-    password: bcrypt.hashSync('admin123', 10),
-    isAdmin: true
+    email: 'admin@bytenest.com',
+    password: 'admin123',
+    phone: '+8801700000001',
+    isAdmin: true,
+    isBlocked: false
   },
   {
-    name: 'John Doe',
-    email: 'john@email.com',
-    password: bcrypt.hashSync('john123', 10),
-    isAdmin: false
+    name: 'Rahim Ahmed',
+    email: 'rahim@example.com',
+    password: 'user123',
+    phone: '+8801700000002',
+    isAdmin: false,
+    isBlocked: false
   },
   {
-    name: 'Alice Smith',
-    email: 'alice@email.com',
-    password: bcrypt.hashSync('alice123', 10),
-    isAdmin: false
-  },
-  {
-    name: 'Eva Brown',
-    email: 'eva@email.com',
-    password: bcrypt.hashSync('eva123', 10),
-    isAdmin: false
-  },
-  {
-    name: 'David Miller',
-    email: 'david@email.com',
-    password: bcrypt.hashSync('david123', 10),
-    isAdmin: false
+    name: 'Fatima Khan',
+    email: 'fatima@example.com',
+    password: 'user123',
+    phone: '+8801700000003',
+    isAdmin: false,
+    isBlocked: false
   }
 ];
 

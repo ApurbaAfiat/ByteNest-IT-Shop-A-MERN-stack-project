@@ -1,64 +1,61 @@
-import { ORDERS_URL, RAZORPAY_URL } from '../constants';
 import { apiSlice } from './apiSlice';
+import { ORDERS_URL } from '../constants';
 
 export const ordersApiSlice = apiSlice.injectEndpoints({
-  endpoints: builder => ({
+  endpoints: (builder) => ({
     createOrder: builder.mutation({
-      query: order => ({
+      query: (data) => ({
         url: ORDERS_URL,
         method: 'POST',
-        body: { ...order }
+        body: data,
       }),
-      invalidatesTags: ['Order']
-    }),
-    getOrderDetails: builder.query({
-      query: orderId => ({
-        url: `${ORDERS_URL}/${orderId}`
-      }),
-      providesTags: ['Order']
+      invalidatesTags: ['Order'],
     }),
     getMyOrders: builder.query({
-      query: () => ({
-        url: `${ORDERS_URL}/my-orders`
-      }),
-      providesTags: ['Order']
+      query: () => `${ORDERS_URL}/my-orders`,
+      providesTags: ['Order'],
+    }),
+    getOrderDetails: builder.query({
+      query: (id) => `${ORDERS_URL}/${id}`,
+      providesTags: (result, error, id) => [{ type: 'Order', id }],
     }),
     payOrder: builder.mutation({
-      query: ({ orderId, details }) => ({
-        url: `${ORDERS_URL}/${orderId}/pay`,
+      query: ({ id, ...data }) => ({
+        url: `${ORDERS_URL}/${id}/pay`,
         method: 'PUT',
-        body: { ...details }
+        body: data,
       }),
-      invalidatesTags: ['Order']
+      invalidatesTags: (result, error, { id }) => [{ type: 'Order', id }],
     }),
-    updateDeliver: builder.mutation({
-      query: orderId => ({
-        url: `${ORDERS_URL}/${orderId}/deliver`,
-        method: 'PUT'
+    cancelOrder: builder.mutation({
+      query: (id) => ({
+        url: `${ORDERS_URL}/${id}/cancel`,
+        method: 'PUT',
       }),
-      invalidatesTags: ['Order']
+      invalidatesTags: ['Order'],
     }),
-    getRazorpayApiKey: builder.query({
-      query: () => ({
-        url: `${RAZORPAY_URL}/razorpay/config`
-      }),
-      providesTags: ['Order']
-    }),
+    // Admin
     getOrders: builder.query({
-      query: () => ({
-        url: ORDERS_URL
+      query: () => ORDERS_URL,
+      providesTags: ['Order'],
+    }),
+    updateOrderStatus: builder.mutation({
+      query: ({ id, status }) => ({
+        url: `${ORDERS_URL}/${id}/status`,
+        method: 'PUT',
+        body: { status },
       }),
-      providesTags: ['Order']
-    })
-  })
+      invalidatesTags: ['Order'],
+    }),
+  }),
 });
 
 export const {
-  useGetOrderDetailsQuery,
   useCreateOrderMutation,
-  usePayOrderMutation,
-  useUpdateDeliverMutation,
-  useGetRazorpayApiKeyQuery,
   useGetMyOrdersQuery,
-  useGetOrdersQuery
+  useGetOrderDetailsQuery,
+  usePayOrderMutation,
+  useCancelOrderMutation,
+  useGetOrdersQuery,
+  useUpdateOrderStatusMutation,
 } = ordersApiSlice;

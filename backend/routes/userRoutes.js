@@ -5,70 +5,49 @@ import {
   logoutUser,
   getUserProfile,
   updateUserProfile,
+  changePassword,
+  getWishlist,
+  addToWishlist,
+  removeFromWishlist,
   getUsers,
-  deleteUser,
-  updateUser,
   getUserById,
-  admins,
+  updateUser,
+  deleteUser,
+  blockUser,
+  unblockUser,
   resetPasswordRequest,
   resetPassword
 } from '../controllers/userController.js';
 import { protect, admin } from '../middleware/authMiddleware.js';
-import validateRequest from '../middleware/validator.js';
-import {body, param} from 'express-validator';
 
 const router = express.Router();
-const validator = {
-  checkLogin: [
-    body('email').trim().notEmpty().withMessage('Email is Required').bail().isEmail().withMessage("Please enter a valid email address"),
-    body('password').trim().isString().notEmpty().withMessage('Password is Empty')
-  ],
-  checkNewUser: [
-    body('email').trim().notEmpty().withMessage('Email is Required').bail().isEmail().withMessage("Please enter a valid email address"),
-    body('password').trim().isString().notEmpty().withMessage('Password is Empty').bail()
-      .isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
-    body('name').trim().notEmpty().withMessage('Name is Required').escape()
-  ],
-  checkGetUserById: [
-    param('id').exists().withMessage('Id is required').isMongoId().withMessage('Invalid Id')
-  ],
-  checkUpdateUser: [
-    body('email').trim().notEmpty().withMessage('Email is Required').bail().isEmail().withMessage("Please enter a valid email address"),
-    body('name').trim().notEmpty().withMessage('Name is Required').escape(),
-    body('isAdmin').isBoolean().withMessage('isAdmin value should be true/false'),
-    param('id').exists().withMessage('Id is required').isMongoId().withMessage('Invalid Id')
-  ],
-  resetPasswordRequest: [
-    body('email').trim().notEmpty().withMessage('Email is Required').bail().isEmail().withMessage("Please enter a valid email address")
-  ],
-  resetPassword: [
-    body('password').trim().notEmpty().withMessage('Password is Required').escape().bail()
-      .isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
-    param('id').exists().withMessage('Id is required').isMongoId().withMessage('Invalid Id'),
-    param('token').trim().notEmpty().withMessage('Token is Required')
-  ]
-}
 
-router.route('/')
-  .post(validator.checkNewUser, validateRequest, registerUser)
-  .get(protect, admin, getUsers);
+// Public routes
+router.post('/', registerUser);
+router.post('/login', loginUser);
+router.post('/reset-password/request', resetPasswordRequest);
+router.post('/reset-password/reset/:id/:token', resetPassword);
 
-router.route('/admins').get(protect, admin, admins);
-
-router.post('/reset-password/request', validator.resetPasswordRequest, validateRequest, resetPasswordRequest);
-router.post('/reset-password/reset/:id/:token', validator.resetPassword, validateRequest, resetPassword);
-router.post('/login', validator.checkLogin, validateRequest, loginUser);
+// Protected routes
 router.post('/logout', protect, logoutUser);
-
-router
-  .route('/profile')
+router.route('/profile')
   .get(protect, getUserProfile)
-  .put(validator.checkNewUser, validateRequest, protect, updateUserProfile);
+  .put(protect, updateUserProfile);
+router.put('/change-password', protect, changePassword);
 
-router
-  .route('/:id')
-  .get(validator.checkGetUserById, validateRequest, protect, admin, getUserById)
-  .put(validator.checkUpdateUser, validateRequest, protect, admin, updateUser)
-  .delete(validator.checkGetUserById, validateRequest, protect, admin, deleteUser);
+// Wishlist routes
+router.route('/wishlist')
+  .get(protect, getWishlist)
+  .post(protect, addToWishlist);
+router.delete('/wishlist/:productId', protect, removeFromWishlist);
+
+// Admin routes
+router.get('/all', protect, admin, getUsers);
+router.route('/:id')
+  .get(protect, admin, getUserById)
+  .put(protect, admin, updateUser)
+  .delete(protect, admin, deleteUser);
+router.put('/:id/block', protect, admin, blockUser);
+router.put('/:id/unblock', protect, admin, unblockUser);
 
 export default router;

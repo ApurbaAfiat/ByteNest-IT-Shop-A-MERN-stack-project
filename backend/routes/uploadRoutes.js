@@ -1,41 +1,44 @@
-import express from 'express';import { body, check } from 'express-validator';
+import express from 'express';
 import multer from 'multer';
-import validateRequest from '../middleware/validator.js';
+import path from 'path';
 
 const router = express.Router();
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'uploads');
+    cb(null, 'uploads/');
   },
   filename: (req, file, cb) => {
-    cb(null, `${file.fieldname}-${file.originalname}`);
+    cb(null, `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`);
   }
 });
 
 const fileFilter = (req, file, cb) => {
-    if (
-    file.mimetype === 'image/png' ||
-    file.mimetype === 'image/jpg' ||
-    file.mimetype === 'image/jpeg'
-  ) {
-    // To accept the file pass `true`, like so:
+  const filetypes = /jpe?g|png|webp/i;
+  const extname = filetypes.test(path.extname(file.originalname));
+  const mimetype = filetypes.test(file.mimetype);
+
+  if (extname && mimetype) {
     cb(null, true);
   } else {
-        // To reject this file pass `false`, like so:
-    cb('Images only!');
+    cb(new Error('Images only (jpeg, jpg, png, webp)!'));
   }
 };
 
-const upload = multer({ storage, fileFilter }).single('image');
+const upload = multer({ storage, fileFilter });
 
-router.post('/', upload, (req, res) => {
-  if (!req.file)
-    throw res.status(400).json({error: 'No file uploaded'});
+// Handle single or multiple uploads
+router.post('/', upload.array('image', 10), (req, res) => {
+  if (!req.files || req.files.length === 0) {
+    return res.status(400).json({ message: 'No files uploaded' });
+  }
+
+  const paths = req.files.map(file => `/${file.path.replace(/\\/g, '/')}`);
 
   res.send({
-    message: 'Image uploaded',
-    imageUrl: `/${req.file.path}`
+    message: 'Images uploaded successfully',
+    path: paths[0],
+    paths: paths
   });
 });
 

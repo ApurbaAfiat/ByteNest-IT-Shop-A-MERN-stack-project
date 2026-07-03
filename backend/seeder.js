@@ -1,8 +1,12 @@
 import mongoose from 'mongoose';
 import users from './data/users.js';
 import products from './data/products.js';
+import categories from './data/categories.js';
+import coupons from './data/coupons.js';
 import User from './models/userModel.js';
 import Product from './models/productModel.js';
+import Category from './models/categoryModel.js';
+import Coupon from './models/couponModel.js';
 import Order from './models/orderModel.js';
 import connectDB from './config/db.js';
 import colors from 'colors';
@@ -12,20 +16,34 @@ connectDB();
 
 const importData = async () => {
   try {
+    // Clear all existing data
     await Order.deleteMany();
-    await User.deleteMany();
     await Product.deleteMany();
+    await User.deleteMany();
+    await Category.deleteMany();
+    await Coupon.deleteMany();
 
-    const createUsers = await User.insertMany(users);
+    // Seed users (password hashing handled by pre-save hook)
+    const createdUsers = await User.create(users);
+    const adminUser = createdUsers[0]._id;
 
-    const adminUser = createUsers[0]._id;
+    // Seed categories
+    await Category.insertMany(categories);
+    console.log('Categories seeded!'.green);
 
-    const sampleProducts = products.map(product => {
-      return { ...product, user: adminUser };
-    });
+    // Seed coupons
+    await Coupon.insertMany(coupons);
+    console.log('Coupons seeded!'.green);
 
+    // Seed products (assign admin user to all)
+    const sampleProducts = products.map(product => ({
+      ...product,
+      user: adminUser
+    }));
     await Product.insertMany(sampleProducts);
-    console.log('Data Imported!'.green.inverse);
+    console.log('Products seeded!'.green);
+
+    console.log('All Data Imported Successfully!'.green.inverse);
     process.exit();
   } catch (error) {
     console.log(`Error: ${error.message}`.red.inverse);
@@ -36,10 +54,12 @@ const importData = async () => {
 const destroyData = async () => {
   try {
     await Order.deleteMany();
-    await User.deleteMany();
     await Product.deleteMany();
+    await User.deleteMany();
+    await Category.deleteMany();
+    await Coupon.deleteMany();
 
-    console.log('Data Destroyed!'.red.inverse);
+    console.log('All Data Destroyed!'.red.inverse);
     process.exit();
   } catch (error) {
     console.log(`Error: ${error.message}`.red.inverse);

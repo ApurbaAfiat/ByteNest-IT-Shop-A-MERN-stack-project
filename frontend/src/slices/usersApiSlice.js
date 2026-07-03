@@ -1,108 +1,121 @@
-import { USERS_URL } from '../constants';
 import { apiSlice } from './apiSlice';
+import { USERS_URL } from '../constants';
 
 export const usersApiSlice = apiSlice.injectEndpoints({
-  endpoints: builder => ({
+  endpoints: (builder) => ({
     login: builder.mutation({
-      query: data => ({
+      query: (data) => ({
         url: `${USERS_URL}/login`,
         method: 'POST',
-        body: data
+        body: data,
       }),
-      invalidatesTags: ['User']
+    }),
+    register: builder.mutation({
+      query: (data) => ({
+        url: USERS_URL,
+        method: 'POST',
+        body: data,
+      }),
     }),
     logout: builder.mutation({
       query: () => ({
         url: `${USERS_URL}/logout`,
-        method: 'POST'
-      }),
-      invalidatesTags: ['User']
-    }),
-    register: builder.mutation({
-      query: data => ({
-        url: `${USERS_URL}`,
         method: 'POST',
-        body: data
       }),
-      invalidatesTags: ['User']
     }),
-    newPasswordRequest: builder.mutation({
-      query: data => ({
-        url: `${USERS_URL}/reset-password/request`,
-        method: 'POST',
-        body: data
-      }),
-      invalidatesTags: ['User']
+    getProfile: builder.query({
+      query: () => `${USERS_URL}/profile`,
+      providesTags: ['User'],
     }),
-    resetPassword: builder.mutation({
-      query: ({ userId, token, password }) => ({
-        url: `${USERS_URL}/reset-password/reset/${userId}/${token}`,
-        method: 'POST',
-        body: { password }
-      }),
-      invalidatesTags: ['User']
-    }),
-    profile: builder.mutation({
-      query: data => ({
+    updateProfile: builder.mutation({
+      query: (data) => ({
         url: `${USERS_URL}/profile`,
         method: 'PUT',
-        body: data
+        body: data,
       }),
-      invalidatesTags: ['User']
+      invalidatesTags: ['User'],
     }),
-    getUserProfile: builder.query({
-      query: async () => ({
-        url: `${USERS_URL}/profile`
+    changePassword: builder.mutation({
+      query: (data) => ({
+        url: `${USERS_URL}/change-password`,
+        method: 'PUT',
+        body: data,
       }),
-      providesTags: ['User']
     }),
+    getWishlist: builder.query({
+      query: () => `${USERS_URL}/wishlist`,
+      providesTags: ['User'],
+    }),
+    addToWishlist: builder.mutation({
+      query: (data) => ({
+        url: `${USERS_URL}/wishlist`,
+        method: 'POST',
+        body: data,
+      }),
+      invalidatesTags: ['User'],
+    }),
+    removeFromWishlist: builder.mutation({
+      query: (productId) => ({
+        url: `${USERS_URL}/wishlist/${productId}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['User'],
+    }),
+    // Admin
     getUsers: builder.query({
-      query: () => ({
-        url: USERS_URL
-      }),
-      providesTags: ['User']
-    }),
-    admins: builder.query({
-      query: () => ({
-        url: `${USERS_URL}/admins`
-      }),
-      providesTags: ['User']
+      query: () => `${USERS_URL}/all`,
+      providesTags: ['User'],
     }),
     getUserById: builder.query({
-      query: userId => ({
-        url: `${USERS_URL}/${userId}`
-      }),
-      providesTags: ['User']
-    }),
-    deleteUser: builder.mutation({
-      query: userId => ({
-        url: `${USERS_URL}/${userId}`,
-        method: 'DELETE'
-      }),
-      invalidatesTags: ['User']
+      query: (id) => `${USERS_URL}/${id}`,
+      providesTags: (result, error, id) => [{ type: 'User', id }],
     }),
     updateUser: builder.mutation({
-      query: ({ userId, ...userData }) => ({
-        url: `${USERS_URL}/${userId}`,
+      query: ({ id, ...data }) => ({
+        url: `${USERS_URL}/${id}`,
         method: 'PUT',
-        body: { ...userData }
+        body: data,
       }),
-      invalidatesTags: ['User']
-    })
-  })
+      invalidatesTags: ['User'],
+    }),
+    deleteUser: builder.mutation({
+      query: (id) => ({
+        url: `${USERS_URL}/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['User'],
+    }),
+    blockUser: builder.mutation({
+      query: (id) => ({
+        url: `${USERS_URL}/${id}/block`,
+        method: 'PUT',
+      }),
+      invalidatesTags: ['User'],
+    }),
+    unblockUser: builder.mutation({
+      query: (id) => ({
+        url: `${USERS_URL}/${id}/unblock`,
+        method: 'PUT',
+      }),
+      invalidatesTags: ['User'],
+    }),
+  }),
 });
 
 export const {
   useLoginMutation,
-  useLogoutMutation,
   useRegisterMutation,
-  useNewPasswordRequestMutation,
-  useResetPasswordMutation,
-  useProfileMutation,
-  useGetUserProfileQuery,
+  useLogoutMutation,
+  useGetProfileQuery,
+  useUpdateProfileMutation,
+  useChangePasswordMutation,
+  useGetWishlistQuery,
+  useAddToWishlistMutation,
+  useRemoveFromWishlistMutation,
   useGetUsersQuery,
-  useDeleteUserMutation,
-  useUpdateUserMutation,
   useGetUserByIdQuery,
-  useAdminsQuery
+  useUpdateUserMutation,
+  useDeleteUserMutation,
+  useBlockUserMutation,
+  useUnblockUserMutation,
 } = usersApiSlice;
