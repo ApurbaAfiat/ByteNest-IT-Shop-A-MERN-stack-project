@@ -12,10 +12,9 @@ import connectDB from './config/db.js';
 import colors from 'colors';
 import 'dotenv/config';
 
-connectDB();
-
 const importData = async () => {
   try {
+    await connectDB();
     // Clear all existing data
     await Order.deleteMany();
     await Product.deleteMany();
@@ -53,6 +52,7 @@ const importData = async () => {
 
 const destroyData = async () => {
   try {
+    await connectDB();
     await Order.deleteMany();
     await Product.deleteMany();
     await User.deleteMany();

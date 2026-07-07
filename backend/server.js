@@ -17,10 +17,6 @@ import connectDB from './config/db.js';
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
 
 const port = process.env.PORT || 5000;
-
-// Connect to MongoDB
-connectDB();
-
 const app = express();
 
 app.use(cors({
@@ -34,6 +30,16 @@ app.use(express.urlencoded({ extended: true }));
 
 const __dirname = path.resolve();
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Connect to MongoDB before handling API requests
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
 
 // API Routes
 app.use('/api/v1/products', productRoutes);
@@ -60,6 +66,18 @@ if (process.env.NODE_ENV === 'production') {
 app.use(notFound);
 app.use(errorHandler);
 
-app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}/`);
-});
+// Local development server (skip on Vercel serverless)
+if (!process.env.VERCEL) {
+  connectDB()
+    .then(() => {
+      app.listen(port, () => {
+        console.log(`Server running at http://localhost:${port}/`);
+      });
+    })
+    .catch((error) => {
+      console.error(error.message);
+      process.exit(1);
+    });
+}
+
+export default app;
